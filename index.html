@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mnemoi · Scacchi online gratis</title>
+<meta name="description" content="Gioca a scacchi online gratis, contro il computer o con un amico sullo stesso dispositivo. Nessuna registrazione, nessun cookie di profilazione.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%99%9E%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <a class="brand" href="/">Mnemoi<span>.</span></a>
+  <nav class="top"><a href="#regole">Regole</a><a href="privacy.html">Privacy</a></nav>
+</header>
+
+<main>
+  <div class="intro">
+    <h1>Scacchi online</h1>
+    Gioca contro il computer o sfida un amico sullo stesso dispositivo. Gratis, senza registrazione.
+  </div>
+
+  <section class="game">
+    <div class="board-wrap">
+      <div id="board" class="board" aria-label="Scacchiera"></div>
+    </div>
+
+    <aside class="panel">
+      <h2>Partita</h2>
+      <div class="row">
+        <div>
+          <label class="f" for="mode">Modalità</label>
+          <select id="mode">
+            <option value="ai">Contro il computer</option>
+            <option value="local">Due giocatori</option>
+          </select>
+        </div>
+        <div id="levelBox">
+          <label class="f" for="level">Livello</label>
+          <select id="level">
+            <option value="1">Facile</option>
+            <option value="2" selected>Medio</option>
+            <option value="3">Difficile</option>
+          </select>
+        </div>
+        <div id="colorBox">
+          <label class="f" for="color">Giochi con</label>
+          <select id="color">
+            <option value="w">Bianco</option>
+            <option value="b">Nero</option>
+          </select>
+        </div>
+      </div>
+      <div class="row">
+        <button class="primary" id="newGame">Nuova partita</button>
+        <button id="undo">Annulla mossa</button>
+        <button id="flip">Ruota</button>
+      </div>
+      <div class="status" id="status" role="status" aria-live="polite"></div>
+      <div class="captured" id="capB" title="Pezzi catturati dal Nero"></div>
+      <div class="captured" id="capW" title="Pezzi catturati dal Bianco"></div>
+      <div class="moves" id="moves"><ol></ol></div>
+    </aside>
+  </section>
+
+  <section id="regole" class="legal" style="max-width:none;margin-top:32px">
+    <h2>Regole in breve</h2>
+    <p>Il Bianco muove per primo, poi i giocatori si alternano. Vince chi dà <strong>scacco matto</strong>, cioè attacca il re avversario senza che possa sfuggire. La partita è <strong>patta</strong> per stallo (chi deve muovere non ha mosse legali e non è sotto scacco), triplice ripetizione, regola delle 50 mosse o materiale insufficiente.</p>
+    <p>Sono supportati arrocco, presa <em>en passant</em> e promozione del pedone. Tocca un pezzo per vedere le sue mosse legali, poi tocca la casa di destinazione.</p>
+  </section>
+</main>
+
+<dialog id="promoDlg">
+  <p style="margin-top:0">Promuovi il pedone a:</p>
+  <div class="promo" id="promoBtns"></div>
+</dialog>
+
+<div class="notice" id="notice">
+  <p>Mnemoi non usa cookie di profilazione né strumenti di tracciamento. Salviamo solo la partita in corso nel tuo browser. <a href="cookie.html">Cookie policy</a></p>
+  <button class="primary" id="noticeOk">Ho capito</button>
+</div>
+
+<footer class="site">
+  © <span id="yr"></span> Mnemoi ·
+  <a href="privacy.html">Privacy policy</a>
+  <a href="cookie.html">Cookie policy</a>
+  <a href="termini.html">Termini e note legali</a>
+</footer>
+
+<script src="chess.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

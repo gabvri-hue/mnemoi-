@@ -17,12 +17,13 @@
   var selected = null;
   var lastMove = null;
   var thinking = false;
+  var reported = false;   // risultato già inviato al profilo per questa partita
 
   // ---------- Salvataggio locale (solo nel browser dell'utente) ----------
   function save() {
     try {
       localStorage.setItem(STORE, JSON.stringify({
-        pgn: game.pgn(), mode: modeEl.value, level: levelEl.value, color: colorEl.value, flipped: flipped
+        pgn: game.pgn(), reported: reported, mode: modeEl.value, level: levelEl.value, color: colorEl.value, flipped: flipped
       }));
     } catch (e) {}
   }
@@ -34,6 +35,7 @@
       levelEl.value = s.level || '2';
       colorEl.value = s.color || 'w';
       flipped = !!s.flipped;
+      reported = !!s.reported;
       if (s.pgn) game.load_pgn(s.pgn);
       var h = game.history({ verbose: true });
       if (h.length) lastMove = h[h.length - 1];
@@ -172,7 +174,18 @@
     lastMove = res;
     save();
     render();
+    reportIfOver();
     maybeComputer();
+  }
+
+  // A fine partita contro il computer comunica il risultato all'account (monete e statistiche)
+  function reportIfOver() {
+    if (reported || !game.game_over() || modeEl.value !== 'ai') return;
+    reported = true;
+    save();
+    var result = 'draw';
+    if (game.in_checkmate()) result = game.turn() === colorEl.value ? 'loss' : 'win';
+    if (window.MnemoiAccount) window.MnemoiAccount.onGameEnd(result, parseInt(levelEl.value, 10), Math.ceil(game.history().length / 2));
   }
 
   function maybeComputer() {
@@ -184,11 +197,12 @@
       thinking = false;
       if (mv) { lastMove = game.move(mv); save(); }
       render();
+      reportIfOver();
     }, 250);
   }
 
   document.getElementById('newGame').onclick = function () {
-    game.reset(); selected = null; lastMove = null; thinking = false;
+    game.reset(); selected = null; lastMove = null; thinking = false; reported = false;
     if (modeEl.value === 'ai') flipped = colorEl.value === 'b';
     save(); render(); maybeComputer();
   };

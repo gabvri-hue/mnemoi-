@@ -4,7 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mnemoi · Scacchi online gratis</title>
-<meta name="description" content="Gioca a scacchi online gratis contro il computer o con un amico. Crea il tuo account, guadagna monete e personalizza scacchiera e pezzi.">
+<meta name="description" content="Gioca a scacchi online gratis contro altre persone, gli amici o il computer. Otto modalità tra cui atomica, Chess960 e regina nascosta. Sali di livello, guadagna monete e personalizza scacchiera e pezzi.">
+<meta name="theme-color" content="#0e0b14">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%E2%99%9E%3C/text%3E%3C/svg%3E">
 <link rel="stylesheet" href="style.css">
 </head>
@@ -13,6 +14,7 @@
   <a class="brand" href="#gioca">Mnemoi<span>.</span></a>
   <nav class="top" id="mainNav">
     <a href="#gioca" data-nav="gioca">Gioca</a>
+    <a href="#amici" data-nav="amici">Amici<span class="dot-badge" id="friendBadge" hidden></span></a>
     <a href="#negozio" data-nav="negozio">Negozio</a>
     <a href="#ruota" data-nav="ruota">Ruota</a>
     <a href="#classifica" data-nav="classifica">Classifica</a>
@@ -20,6 +22,7 @@
   <div class="account" id="accountBox">
     <button class="primary" id="loginBtn" hidden>Accedi</button>
     <a href="#profilo" class="me" id="meBox" hidden>
+      <span class="lvl" id="meLevel" title="Il tuo livello">Liv. 0</span>
       <span class="coins" id="meCoins" title="Le tue monete">0</span>
       <span class="avatar sm" id="meAvatar"></span>
     </a>
@@ -27,20 +30,71 @@
 </header>
 
 <main>
-  <!-- ===== Gioca ===== -->
+  <!-- ===== Gioca: scelta della partita ===== -->
   <section class="view" data-view="gioca">
     <div class="intro">
-      <h1>Scacchi online</h1>
-      Gioca contro il computer o sfida un amico sullo stesso dispositivo. <span id="earnHint">Con un account guadagni monete a ogni vittoria contro il computer.</span>
+      <h1>Gioca a scacchi</h1>
+      Sfida altri giocatori online, i tuoi amici o il computer.
     </div>
 
+    <div class="banner" id="activeBanner" hidden>
+      <span>Hai una partita online in corso.</span>
+      <a class="btn primary" id="activeLink" href="#gioca">Torna alla partita</a>
+    </div>
+
+    <div class="lobby">
+      <div class="panel">
+        <h2>Gioca online</h2>
+        <div class="needs-account" data-msg="per giocare online contro altre persone e salvare i tuoi progressi"></div>
+        <label class="f">Modalità</label>
+        <div class="variants" id="variantPick"></div>
+        <label class="f">Tempo per giocatore</label>
+        <div class="chips" id="tcPick"></div>
+        <div class="seek">
+          <button class="primary big" id="seekBtn">Cerca avversario</button>
+          <div class="seeking" id="seekBox" hidden>
+            <span class="spinner" aria-hidden="true"></span>
+            <span id="seekText">Cerco un avversario…</span>
+            <button id="seekCancel">Annulla</button>
+          </div>
+        </div>
+      </div>
+      <div class="side-tiles">
+        <a class="panel tile" href="#computer" data-play="ai">
+          <span class="tile-ic">♞</span>
+          <span><b>Contro il computer</b><br><span class="muted">Tre livelli di difficoltà, guadagni monete ed esperienza.</span></span>
+        </a>
+        <a class="panel tile" href="#computer" data-play="local">
+          <span class="tile-ic">♟</span>
+          <span><b>Due giocatori</b><br><span class="muted">Sullo stesso dispositivo, a turno.</span></span>
+        </a>
+        <a class="panel tile" href="#amici">
+          <span class="tile-ic">♚</span>
+          <span><b>Sfida un amico</b><br><span class="muted">Aggiungi amici e invitali a giocare.</span></span>
+        </a>
+      </div>
+    </div>
+
+    <section id="regole" class="legal rules">
+      <h2>Le modalità</h2>
+      <div id="rulesList"></div>
+      <h2>Livelli, punteggio e monete</h2>
+      <p>Ogni account parte dal <strong>livello 0</strong>. Ogni partita online ti dà esperienza: <strong>50</strong> se vinci, <strong>25</strong> se pareggi, <strong>15</strong> se perdi. Contro il computer ne guadagni meno (da 4 a 25). Per salire di livello serve sempre un po' più esperienza del livello precedente.</p>
+      <p>Per ogni modalità hai anche un <strong>punteggio</strong> che parte da 1200: sale quando vinci e scende quando perdi, di più se l'avversario è più forte di te. L'abbinamento cerca avversari con un punteggio vicino al tuo.</p>
+      <p>Le vittorie online valgono 20 monete (10 la patta), quelle contro il computer 5, 15 o 30 a seconda del livello, fino a 300 monete al giorno dalle partite. Le partite troppo corte non danno esperienza né monete. Ogni giorno puoi anche girare la <a href="#ruota">ruota della fortuna</a>. Le monete servono solo a sbloccare stili nel <a href="#negozio">negozio</a>: non si comprano e non hanno valore in denaro.</p>
+    </section>
+  </section>
+
+  <!-- ===== Contro il computer / due giocatori ===== -->
+  <section class="view" data-view="computer" hidden>
+    <p class="back"><a href="#gioca">← Torna a Gioca</a></p>
     <div class="game">
       <div class="board-wrap">
         <div id="board" class="board" aria-label="Scacchiera"></div>
       </div>
 
       <aside class="panel">
-        <h2>Partita</h2>
+        <h2>Partita classica</h2>
         <div class="row">
           <div>
             <label class="f" for="mode">Modalità</label>
@@ -77,13 +131,66 @@
       </aside>
     </div>
 
-    <section id="regole" class="legal" style="max-width:none;margin-top:32px">
-      <h2>Regole in breve</h2>
-      <p>Il Bianco muove per primo, poi i giocatori si alternano. Vince chi dà <strong>scacco matto</strong>, cioè attacca il re avversario senza che possa sfuggire. La partita è <strong>patta</strong> per stallo (chi deve muovere non ha mosse legali e non è sotto scacco), triplice ripetizione, regola delle 50 mosse o materiale insufficiente.</p>
-      <p>Sono supportati arrocco, presa <em>en passant</em> e promozione del pedone. Tocca un pezzo per vedere le sue mosse legali, poi tocca la casa di destinazione.</p>
-      <h2>Monete</h2>
-      <p>Con un account ogni vittoria contro il computer vale 5 monete a livello Facile, 15 a Medio e 30 a Difficile (partite di almeno 10 mosse, fino a 300 monete al giorno dalle partite). In più ogni giorno puoi girare la <a href="#ruota">ruota della fortuna</a>. Le monete servono solo a sbloccare stili nel <a href="#negozio">negozio</a>: non si comprano e non hanno valore in denaro.</p>
-    </section>
+  </section>
+
+  <!-- ===== Partita online ===== -->
+  <section class="view" data-view="partita" hidden>
+    <div class="game">
+      <div class="board-wrap">
+        <div class="pbar" id="oppBar"></div>
+        <div id="oBoard" class="board" aria-label="Scacchiera"></div>
+        <div class="pbar" id="myBar"></div>
+      </div>
+      <aside class="panel">
+        <h2 id="oTitle">Partita online</h2>
+        <p class="muted small" id="oRules"></p>
+        <p class="secret" id="oSecret" hidden></p>
+        <div class="status" id="oStatus" role="status" aria-live="polite"></div>
+        <div class="offer" id="oOffer" hidden>
+          <span>L'avversario propone patta.</span>
+          <button class="primary" id="oAcceptDraw">Accetta</button>
+          <button id="oDeclineDraw">Rifiuta</button>
+        </div>
+        <div class="endbox" id="oEnd" hidden></div>
+        <div class="row" id="oActions">
+          <button id="oDrawBtn">Proponi patta</button>
+          <button id="oResign" class="danger">Abbandona</button>
+          <button id="oFlip">Ruota</button>
+        </div>
+        <div class="moves"><ol id="oMoves"></ol></div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ===== Amici ===== -->
+  <section class="view" data-view="amici" hidden>
+    <div class="intro">
+      <h1>Amici</h1>
+      Aggiungi i tuoi amici con il loro nome in gioco, guarda chi è online e sfidali.
+    </div>
+    <div class="needs-account" data-msg="per aggiungere amici"></div>
+    <div class="friends" id="friendsBox" hidden>
+      <div class="panel">
+        <h2>Aggiungi un amico</h2>
+        <form id="addFriend" class="inline-form">
+          <input id="friendName" placeholder="Nome in gioco" maxlength="20" autocomplete="off" required>
+          <button class="primary" type="submit">Invia richiesta</button>
+        </form>
+        <p class="form-msg" id="friendMsg" role="status"></p>
+        <div id="friendReqsBox" hidden>
+          <h2>Richieste ricevute</h2>
+          <div class="plist" id="friendReqs"></div>
+        </div>
+        <div id="friendSentBox" hidden>
+          <h2>Richieste inviate</h2>
+          <div class="plist" id="friendSent"></div>
+        </div>
+      </div>
+      <div class="panel">
+        <h2>I tuoi amici</h2>
+        <div class="plist" id="friendList"><p class="muted">Caricamento…</p></div>
+      </div>
+    </div>
   </section>
 
   <!-- ===== Negozio ===== -->
@@ -120,13 +227,14 @@
   <section class="view" data-view="classifica" hidden>
     <div class="intro">
       <h1>Classifica</h1>
-      I giocatori con più vittorie contro il computer.
+      I giocatori con il livello più alto.
     </div>
     <div class="panel">
       <table class="rank">
-        <thead><tr><th>#</th><th>Giocatore</th><th>Vittorie</th><th>Monete</th></tr></thead>
-        <tbody id="rankBody"><tr><td colspan="4">Caricamento…</td></tr></tbody>
+        <thead><tr><th>#</th><th>Giocatore</th><th>Livello</th><th>Punteggio</th><th>Vittorie online</th></tr></thead>
+        <tbody id="rankBody"><tr><td colspan="5">Caricamento…</td></tr></tbody>
       </table>
+      <p class="hint" style="margin:10px 0 0">Il punteggio è quello della modalità classica.</p>
     </div>
   </section>
 
@@ -143,13 +251,17 @@
             <div class="muted" id="pfEmail"></div>
           </div>
         </div>
+        <div class="xp">
+          <div class="xp-top"><b id="pfLevel">Livello 0</b><span class="muted" id="pfXpText"></span></div>
+          <div class="xp-bar"><i id="pfXpBar"></i></div>
+        </div>
         <form id="pfForm">
           <label class="f" for="pfUsername">Nome visualizzato in gioco</label>
           <input id="pfUsername" required minlength="3" maxlength="20" pattern="[A-Za-z0-9_.]{3,20}" autocomplete="nickname">
           <p class="hint">Da 3 a 20 caratteri: lettere, numeri, punto e trattino basso.</p>
           <label class="f" for="pfFile">Immagine profilo</label>
           <input id="pfFile" type="file" accept="image/png,image/jpeg,image/webp">
-          <p class="hint">Viene ridimensionata automaticamente. È visibile agli altri giocatori in classifica.</p>
+          <p class="hint">Viene ridimensionata automaticamente. È visibile agli altri giocatori.</p>
           <div class="row">
             <button class="primary" type="submit">Salva</button>
             <button type="button" id="pfRemoveAvatar">Rimuovi immagine</button>
@@ -161,10 +273,14 @@
         <h2>Statistiche</h2>
         <div class="stats">
           <div><b id="stCoins">0</b><span>monete</span></div>
-          <div><b id="stWins">0</b><span>vittorie</span></div>
-          <div><b id="stLosses">0</b><span>sconfitte</span></div>
-          <div><b id="stDraws">0</b><span>patte</span></div>
+          <div><b id="stXp">0</b><span>esperienza</span></div>
+          <div><b id="stOnline">0 / 0 / 0</b><span>online: vinte / perse / patte</span></div>
+          <div><b id="stAi">0 / 0 / 0</b><span>computer: vinte / perse / patte</span></div>
         </div>
+        <h2 style="margin-top:20px">Punteggi</h2>
+        <div class="ratings" id="pfRatings"></div>
+        <h2 style="margin-top:20px">Ultime partite online</h2>
+        <div class="plist" id="pfGames"><p class="muted">Nessuna partita ancora.</p></div>
         <div class="row" style="margin-top:16px">
           <button id="logoutBtn">Esci</button>
           <button id="deleteBtn" class="danger">Elimina account</button>
@@ -219,10 +335,27 @@
   <div class="promo" id="promoBtns"></div>
 </dialog>
 
+<!-- Sfida un amico -->
+<dialog id="chDlg">
+  <form id="chForm">
+    <h2 style="margin-top:0">Sfida <span id="chName"></span></h2>
+    <label class="f" for="chVariant">Modalità</label>
+    <select id="chVariant"></select>
+    <label class="f" for="chTc" style="margin-top:10px">Tempo</label>
+    <select id="chTc"></select>
+    <p class="form-msg" id="chMsg" role="status"></p>
+    <div class="row">
+      <button class="primary" type="submit">Invia sfida</button>
+      <button type="button" id="chClose">Chiudi</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="invites" id="invites" aria-live="polite"></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <div class="notice" id="notice">
-  <p>Mnemoi non usa cookie di profilazione né strumenti di tracciamento. Salviamo nel tuo browser solo la partita in corso e, se accedi, la sessione del tuo account. <a href="cookie.html">Cookie policy</a></p>
+  <p>Mnemoi non usa cookie di profilazione né strumenti di tracciamento. Salviamo nel tuo browser solo la partita contro il computer, le tue preferenze di gioco e, se accedi, la sessione del tuo account. <a href="cookie.html">Cookie policy</a></p>
   <button class="primary" id="noticeOk">Ho capito</button>
 </div>
 
@@ -234,9 +367,11 @@
 </footer>
 
 <script src="chess.js"></script>
+<script src="engine.js"></script>
 <script src="supabase.js"></script>
 <script src="config.js"></script>
 <script src="account.js"></script>
 <script src="app.js"></script>
+<script src="online.js"></script>
 </body>
 </html>

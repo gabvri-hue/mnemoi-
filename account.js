@@ -3,7 +3,7 @@
 
   // Spicchi della ruota: stesso ordine dei premi in spin_wheel() (supabase/schema.sql)
   var WHEEL = [10, 50, 20, 100, 10, 30, 20, 500];
-  var WHEEL_COLORS = ['#7a4b2a', '#c9a227', '#5b7c4f', '#2f5d8a', '#7a4b2a', '#8a4f7d', '#5b7c4f', '#b23a3a'];
+  var WHEEL_COLORS = ['#3b2766', '#8b5cf6', '#5b3a9e', '#c084fc', '#3b2766', '#7c3aed', '#5b3a9e', '#d4a72c'];
   var GLYPH = { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' };
 
   var cfg = window.MNEMOI_CONFIG || {};
@@ -42,6 +42,15 @@
   function romeDay() {
     return new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Rome' }).format(new Date());
   }
+  // Livello: per arrivare al livello L servono in tutto 50 * L * (L + 1) punti esperienza
+  function levelOf(xp) {
+    xp = xp || 0;
+    var L = Math.floor((Math.sqrt(1 + 0.08 * xp) - 1) / 2);
+    while (50 * (L + 1) * (L + 2) <= xp) L++;
+    while (L > 0 && 50 * L * (L + 1) > xp) L--;
+    var base = 50 * L * (L + 1), next = 50 * (L + 1) * (L + 2);
+    return { level: L, into: xp - base, need: next - base };
+  }
   function avatarHtml(p) {
     if (p && p.avatar_url) return '<img src="' + esc(p.avatar_url) + '" alt="">';
     return esc(((p && p.username) || '?').charAt(0).toUpperCase());
@@ -67,6 +76,7 @@
   // ---------- Stato account ----------
   function setProfile(p) {
     profile = p;
+    document.dispatchEvent(new CustomEvent('mnemoi:profile'));
     renderHeader();
     renderProfile();
     renderShop();
@@ -100,8 +110,8 @@
     if (profile) {
       $('meCoins').textContent = profile.coins;
       $('meAvatar').innerHTML = avatarHtml(profile);
+      $('meLevel').textContent = 'Liv. ' + levelOf(profile.xp).level;
     }
-    $('earnHint').hidden = !!user;
     var needs = document.querySelectorAll('.needs-account');
     for (var i = 0; i < needs.length; i++) {
       var el = needs[i];
@@ -201,9 +211,17 @@
     $('pfEmail').textContent = user ? user.email : '';
     if (document.activeElement !== $('pfUsername')) $('pfUsername').value = profile.username;
     $('stCoins').textContent = profile.coins;
-    $('stWins').textContent = profile.wins;
-    $('stLosses').textContent = profile.losses;
-    $('stDraws').textContent = profile.draws;
+    $('stXp').textContent = profile.xp || 0;
+    $('stOnline').textContent = (profile.online_wins || 0) + ' / ' + (profile.online_losses || 0) + ' / ' + (profile.online_draws || 0);
+    $('stAi').textContent = profile.wins + ' / ' + profile.losses + ' / ' + profile.draws;
+    var lv = levelOf(profile.xp);
+    $('pfLevel').textContent = 'Livello ' + lv.level;
+    $('pfXpText').textContent = lv.into + ' / ' + lv.need + ' exp per il livello ' + (lv.level + 1);
+    $('pfXpBar').style.width = Math.round(100 * lv.into / lv.need) + '%';
+    var E = window.MnemoiEngine, rt = profile.ratings || {};
+    $('pfRatings').innerHTML = E ? E.ORDER.map(function (v) {
+      return '<div><span>' + esc(E.VARIANTS[v].name) + '</span><b>' + (rt[v] || 1200) + '</b></div>';
+    }).join('') : '';
     $('pfRemoveAvatar').hidden = !profile.avatar_url;
   }
 
@@ -285,7 +303,7 @@
       }
       return h + '</div>';
     }
-    var cur = itemById(profile ? profile.board_theme : 'board_classico') || { data: { light: '#f0d9b5', dark: '#b58863' } };
+    var cur = itemById(profile ? profile.board_theme : 'board_classico') || { data: { light: '#e9e1f7', dark: '#8b6cc9' } };
     return '<div class="pv-pieces" style="background:linear-gradient(90deg,' + esc(cur.data.light) + ' 50%,' + esc(cur.data.dark) + ' 50%)">' +
       ['k', 'q', 'n'].map(function (t) { return '<span style="color:' + esc(it.data.w) + ';text-shadow:' + esc(it.data.ws) + '">' + GLYPH[t] + '</span>'; }).join('') +
       ['k', 'q', 'n'].map(function (t) { return '<span style="color:' + esc(it.data.b) + ';text-shadow:' + esc(it.data.bs) + '">' + GLYPH[t] + '</span>'; }).join('') +
@@ -337,11 +355,11 @@
     for (var i = 0; i < n; i++) {
       var a0 = (i * step - 90) * Math.PI / 180, a1 = ((i + 1) * step - 90) * Math.PI / 180;
       var x0 = 95 * Math.cos(a0), y0 = 95 * Math.sin(a0), x1 = 95 * Math.cos(a1), y1 = 95 * Math.sin(a1);
-      svg += '<path d="M0 0 L' + x0.toFixed(2) + ' ' + y0.toFixed(2) + ' A95 95 0 0 1 ' + x1.toFixed(2) + ' ' + y1.toFixed(2) + ' Z" fill="' + WHEEL_COLORS[i] + '" stroke="#fff" stroke-width="1.5"/>';
+      svg += '<path d="M0 0 L' + x0.toFixed(2) + ' ' + y0.toFixed(2) + ' A95 95 0 0 1 ' + x1.toFixed(2) + ' ' + y1.toFixed(2) + ' Z" fill="' + WHEEL_COLORS[i] + '" stroke="#0e0b14" stroke-width="1.5"/>';
       var mid = i * step + step / 2;
       svg += '<text transform="rotate(' + mid + ') translate(0 -62)" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-size="15" font-weight="700">' + WHEEL[i] + '</text>';
     }
-    svg += '<circle r="14" fill="#fff" stroke="#00000033"/><text text-anchor="middle" dominant-baseline="central" font-size="15">♞</text>';
+    svg += '<circle r="96" fill="none" stroke="#8b5cf6" stroke-width="2"/><circle r="14" fill="#17121f" stroke="#8b5cf6" stroke-width="2"/><text text-anchor="middle" dominant-baseline="central" font-size="15" fill="#ece6f5">♞</text>';
     $('wheel').innerHTML = svg;
   }
 
@@ -384,34 +402,40 @@
   // ---------- Classifica ----------
   function loadRanking() {
     var body = $('rankBody');
-    if (!enabled) { body.innerHTML = '<tr><td colspan="4">La classifica sarà disponibile a breve.</td></tr>'; return; }
-    sb.from('profiles').select('id, username, avatar_url, wins, coins')
-      .order('wins', { ascending: false }).order('coins', { ascending: false }).limit(50)
+    if (!enabled) { body.innerHTML = '<tr><td colspan="5">La classifica sarà disponibile a breve.</td></tr>'; return; }
+    sb.from('profiles').select('id, username, avatar_url, xp, ratings, online_wins')
+      .order('xp', { ascending: false }).order('online_wins', { ascending: false }).limit(50)
       .then(function (r) {
         var rows = r.data || [];
-        if (!rows.length) { body.innerHTML = '<tr><td colspan="4">Ancora nessun giocatore. Sii il primo!</td></tr>'; return; }
+        if (r.error) { body.innerHTML = '<tr><td colspan="5">Classifica non disponibile al momento.</td></tr>'; return; }
+        if (!rows.length) { body.innerHTML = '<tr><td colspan="5">Ancora nessun giocatore. Sii il primo!</td></tr>'; return; }
         body.innerHTML = rows.map(function (p, i) {
           return '<tr' + (user && p.id === user.id ? ' class="me-row"' : '') + '><td>' + (i + 1) + '</td><td><span class="who"><span class="avatar sm">' +
-            avatarHtml(p) + '</span>' + esc(p.username) + '</span></td><td>' + p.wins + '</td><td>' + p.coins + '</td></tr>';
+            avatarHtml(p) + '</span>' + esc(p.username) + '</span></td><td>' + levelOf(p.xp).level + '</td><td>' +
+            ((p.ratings && p.ratings.standard) || 1200) + '</td><td>' + (p.online_wins || 0) + '</td></tr>';
         }).join('');
       });
   }
 
   // ---------- Navigazione ----------
-  var VIEWS = ['gioca', 'negozio', 'ruota', 'classifica', 'profilo'];
+  var VIEWS = ['gioca', 'computer', 'partita', 'amici', 'negozio', 'ruota', 'classifica', 'profilo'];
   function route() {
-    var v = (location.hash || '#gioca').slice(1);
-    if (VIEWS.indexOf(v) < 0) v = 'gioca';
+    var parts = (location.hash || '#gioca').slice(1).split('/');
+    var v = parts[0], arg = parts[1] || null;
+    if (VIEWS.indexOf(v) < 0 || (v === 'partita' && !arg)) v = 'gioca';
     var secs = document.querySelectorAll('.view');
     for (var i = 0; i < secs.length; i++) secs[i].hidden = secs[i].getAttribute('data-view') !== v;
     var links = document.querySelectorAll('[data-nav]');
     for (var j = 0; j < links.length; j++) links[j].classList.toggle('on', links[j].getAttribute('data-nav') === v);
     if (v === 'classifica') loadRanking();
     if (v === 'profilo' || v === 'negozio') renderShop();
+    var nav = { computer: 'gioca', partita: 'gioca', profilo: '' }[v];
+    if (nav !== undefined) for (var k = 0; k < links.length; k++) links[k].classList.toggle('on', links[k].getAttribute('data-nav') === nav);
     window.scrollTo(0, 0);
+    document.dispatchEvent(new CustomEvent('mnemoi:route', { detail: { view: v, arg: arg } }));
   }
   window.addEventListener('hashchange', function () {
-    if (VIEWS.indexOf(location.hash.slice(1)) >= 0 || !location.hash) route();
+    if (VIEWS.indexOf(location.hash.slice(1).split('/')[0]) >= 0 || !location.hash) route();
   });
 
   // ---------- Partite: chiamato da app.js a fine partita ----------
@@ -419,17 +443,33 @@
     if (!sb || !user) return;
     sb.rpc('report_game', { p_result: result, p_level: level, p_moves: moves }).then(function (r) {
       if (r.error) return;
-      if (profile) { profile.coins = r.data.coins; profile[result === 'win' ? 'wins' : result === 'loss' ? 'losses' : 'draws']++; setProfile(profile); }
-      if (r.data.reward > 0) toast('Vittoria! +' + r.data.reward + ' monete');
-      else if (result === 'win') toast('Vittoria! (nessuna moneta: partita troppo corta o limite raggiunto)');
+      if (profile) {
+        profile.coins = r.data.coins;
+        if (r.data.xp != null) profile.xp = r.data.xp;
+        profile[result === 'win' ? 'wins' : result === 'loss' ? 'losses' : 'draws']++;
+        setProfile(profile);
+      }
+      var xp = r.data.gain ? ' +' + r.data.gain + ' exp' : '';
+      if (r.data.reward > 0) toast('Vittoria! +' + r.data.reward + ' monete' + xp);
+      else if (result === 'win') toast('Vittoria!' + (xp || ' (partita troppo corta: niente monete)'));
+      else if (xp) toast(xp.trim());
     });
   }
 
-  window.MnemoiAccount = { onGameEnd: onGameEnd, isLoggedIn: function () { return !!user; } };
+  window.MnemoiAccount = {
+    onGameEnd: onGameEnd,
+    isLoggedIn: function () { return !!user; },
+    enabled: enabled, sb: sb,
+    user: function () { return user; },
+    profile: function () { return profile; },
+    reloadProfile: function () { return user ? loadProfile() : Promise.resolve(); },
+    toast: toast, esc: esc, errText: errText, avatarHtml: avatarHtml, levelOf: levelOf, openAuth: openAuth,
+    route: route
+  };
 
   // ---------- Avvio ----------
   drawWheel();
-  route();
+  setTimeout(route, 0);
   renderHeader();
   renderShop();
   renderWheelState();
@@ -440,6 +480,7 @@
     var newUser = session ? session.user : null;
     var changed = (newUser && newUser.id) !== (user && user.id);
     user = newUser;
+    if (changed) document.dispatchEvent(new CustomEvent('mnemoi:user'));
     if (event === 'PASSWORD_RECOVERY') { $('pwMsg').textContent = ''; $('pwDlg').showModal(); }
     if (changed || event === 'SIGNED_IN') setTimeout(loadProfile, 0);
   });

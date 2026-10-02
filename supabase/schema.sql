@@ -62,7 +62,8 @@ drop policy if exists "catalogo pubblico" on public.items;
 create policy "catalogo pubblico" on public.items for select using (true);
 
 insert into public.items (id, kind, name, price, data, sort) values
-  ('board_classico', 'board', 'Classica',      0, '{"light":"#f0d9b5","dark":"#b58863"}', 0),
+  ('board_classico', 'board', 'Mnemoi',        0, '{"light":"#e9e1f7","dark":"#8b6cc9"}', 0),
+  ('board_legno',    'board', 'Legno',         0, '{"light":"#f0d9b5","dark":"#b58863"}', 1),
   ('board_torneo',   'board', 'Torneo',      100, '{"light":"#eeeed2","dark":"#769656"}', 1),
   ('board_oceano',   'board', 'Oceano',      150, '{"light":"#dee3e6","dark":"#8ca2ad"}', 2),
   ('board_lavanda',  'board', 'Lavanda',     200, '{"light":"#ece4f4","dark":"#9b7fbf"}', 3),
